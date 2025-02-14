@@ -108,4 +108,6 @@ async def predict(file: UploadFile = File(...), model_name: str = Query("fpn", e
     return Response(buffer.tobytes(), media_type="image/png")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    import os
+    port = int(os.environ.get("PORT", 8080))  # Récupérer le port défini dans Cloud Run
+    uvicorn.run(app, host="0.0.0.0", port=port)
