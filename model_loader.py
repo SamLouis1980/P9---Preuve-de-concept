@@ -5,7 +5,9 @@ import json
 from PIL import Image
 import streamlit as st
 import torch
+import torchvision
 from transformers import Mask2FormerForUniversalSegmentation
+from models_fpn import FPN_Segmenter  # 🔥 Import du modèle FPN
 
 # Configuration du logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -56,8 +58,8 @@ load_gcp_credentials()
 # Configuration du bucket Google Cloud
 BUCKET_NAME = "p8_segmentation_models"
 MODEL_PATHS = {
-    "fpn": "fpn_resnet50_final.h5",
-    "mask2former": "mask2former_final.h5"
+    "fpn": "fpn_best.pth",
+    "mask2former": "mask2former_best.pth"
 }
 
 MODEL_INPUT_SIZES = {
@@ -65,7 +67,7 @@ MODEL_INPUT_SIZES = {
     "mask2former": (512, 512)
 }
 
-# Palette de couleurs pour affichage
+# 🎨 Palette de couleurs pour affichage (Cityscapes)
 GROUP_PALETTE = [
     (0, 0, 0), (128, 64, 128), (70, 70, 70), (153, 153, 153),
     (107, 142, 35), (70, 130, 180), (220, 20, 60), (0, 0, 142)
@@ -128,9 +130,11 @@ def load_model(model_name="fpn"):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         if model_name == "mask2former":
-            model = Mask2FormerForUniversalSegmentation.from_pretrained(local_model_path).to(device)
+            model = Mask2FormerForUniversalSegmentation.from_pretrained("facebook/mask2former-swin-base-coco").to(device)
+            model.load_state_dict(torch.load(local_model_path, map_location=device))
         else:
-            model = torch.load(local_model_path, map_location=device)
+            model = FPN_Segmenter(num_classes=8).to(device)
+            model.load_state_dict(torch.load(local_model_path, map_location=device))
 
         model.eval()  # Mode évaluation
         logging.info(f"Modèle {model_name} chargé avec succès.")
