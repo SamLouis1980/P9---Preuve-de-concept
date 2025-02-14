@@ -7,7 +7,7 @@ import streamlit as st
 import torch
 import torchvision
 from transformers import Mask2FormerForUniversalSegmentation
-from models_fpn import FPN_Segmenter  # 🔥 Import du modèle FPN
+from models_fpn import FPN_Segmenter  # Import du modèle FPN
 
 # Configuration du logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
