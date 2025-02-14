@@ -3,7 +3,7 @@ import os
 import logging
 import json
 from PIL import Image
-import streamlit as st
+# import streamlit as st
 import torch
 import torchvision
 from transformers import Mask2FormerForUniversalSegmentation
