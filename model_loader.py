@@ -143,11 +143,16 @@ def load_model(model_name="fpn"):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         if model_name == "mask2former":
-            model = Mask2FormerForUniversalSegmentation.from_pretrained("facebook/mask2former-swin-base-coco").to(device)
-            model.load_state_dict(torch.load(local_model_path, map_location=device))
+            logging.info("Chargement de Mask2Former avec les bons poids pré-entraînés...")
+            model = Mask2FormerForUniversalSegmentation.from_pretrained(
+                "facebook/mask2former-swin-large-cityscapes-semantic"
+            ).to(device)
         else:
+            logging.info("Chargement du modèle FPN...")
             model = FPN_Segmenter(num_classes=8).to(device)
-            model.load_state_dict(torch.load(local_model_path, map_location=device))
+
+        # Charger les poids fine-tunés
+        model.load_state_dict(torch.load(local_model_path, map_location=device))
 
         model.eval()  # Mode évaluation
         logging.info(f"Modèle {model_name} chargé avec succès.")
