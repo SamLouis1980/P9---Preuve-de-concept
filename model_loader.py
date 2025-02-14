@@ -3,7 +3,7 @@ import os
 import logging
 import json
 from PIL import Image
-# import streamlit as st
+import streamlit as st
 import torch
 import torchvision
 from transformers import Mask2FormerForUniversalSegmentation
@@ -23,6 +23,19 @@ def load_gcp_credentials():
     try:
         credentials_json = None
 
+        # Cas 0: Exécution sur Colab (si la variable d'environnement GOOGLE_COLAB est présente)
+        if "COLAB_GPU" in os.environ:
+            logging.info("🔹 Exécution détectée sur Google Colab.")
+            
+            # Vérifier si la clé GCP est présente dans un fichier local
+            local_gcp_path = "/content/gcp_key.json"
+            if os.path.exists(local_gcp_path):
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = local_gcp_path
+                logging.info(f"Clé GCP chargée depuis {local_gcp_path}.")
+                return  # On s'arrête ici, pas besoin de chercher ailleurs.
+            else:
+                raise RuntimeError("🚨 Clé GCP introuvable sur Colab ! Ajoutez `/content/gcp_key.json`.")
+                
         # Cas 1: Streamlit Secrets
         if "GCP_CREDENTIALS" in st.secrets:
             credentials_json = st.secrets["GCP_CREDENTIALS"]
