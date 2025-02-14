@@ -23,13 +23,13 @@ def load_gcp_credentials():
 
         # Vérifier si une clé existe déjà dans l'environnement
         if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
-            logging.info("✅ Clé GCP déjà configurée dans GOOGLE_APPLICATION_CREDENTIALS.")
+            logging.info("Clé GCP déjà configurée dans GOOGLE_APPLICATION_CREDENTIALS.")
             return  # Rien à faire, la clé est déjà définie
 
         # Vérifier si une clé est disponible via une variable d'environnement
         if "GCP_CREDENTIALS" in os.environ:
             credentials_json = os.environ["GCP_CREDENTIALS"]
-            logging.info("🔑 Clé GCP détectée dans les variables d'environnement.")
+            logging.info("Clé GCP détectée dans les variables d'environnement.")
 
         if credentials_json:
             credentials_dict = json.loads(credentials_json) if isinstance(credentials_json, str) else credentials_json
@@ -40,15 +40,15 @@ def load_gcp_credentials():
 
             # Définir la variable d’environnement pour Google Cloud
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GCP_CREDENTIALS_PATH
-            logging.info("✅ Clé GCP enregistrée et utilisée dans /tmp/gcp_key.json")
+            logging.info("Clé GCP enregistrée et utilisée dans /tmp/gcp_key.json")
         else:
-            logging.warning("⚠️ Aucune clé GCP trouvée. L'API pourra fonctionner uniquement si la clé est déjà configurée.")
+            logging.warning("Aucune clé GCP trouvée. L'API pourra fonctionner uniquement si la clé est déjà configurée.")
     
     except json.JSONDecodeError:
-        logging.error("❌ Erreur de décodage JSON dans GCP_CREDENTIALS.")
+        logging.error("Erreur de décodage JSON dans GCP_CREDENTIALS.")
         raise RuntimeError("Erreur de décodage JSON dans GCP_CREDENTIALS.")
     except Exception as e:
-        logging.error(f"❌ Impossible de charger la clé GCP : {e}")
+        logging.error(f"Impossible de charger la clé GCP : {e}")
         raise RuntimeError("Erreur de configuration GCP.")
 
 # Charger les credentials GCP si nécessaire
@@ -73,9 +73,9 @@ def download_file(bucket_name, source_blob_name, destination_file_name):
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(source_blob_name)
         blob.download_to_filename(destination_file_name)
-        logging.info(f"📥 Fichier téléchargé : {destination_file_name}")
+        logging.info(f"Fichier téléchargé : {destination_file_name}")
     except Exception as e:
-        logging.error(f"❌ Erreur lors du téléchargement de {source_blob_name} : {e}")
+        logging.error(f"Erreur lors du téléchargement de {source_blob_name} : {e}")
         raise RuntimeError(f"Impossible de télécharger {source_blob_name}")
 
 def load_model(model_name="fpn"):
@@ -85,33 +85,33 @@ def load_model(model_name="fpn"):
 
     # Vérifie si le modèle est local
     if not os.path.exists(local_model_path):
-        logging.info(f"📌 Le modèle {model_name} n'est pas trouvé localement. Téléchargement en cours...")
+        logging.info(f"Le modèle {model_name} n'est pas trouvé localement. Téléchargement en cours...")
         download_file(BUCKET_NAME, model_path, local_model_path)
 
         if not os.path.exists(local_model_path):
-            raise RuntimeError(f"❌ Le modèle {model_name} n'a pas été correctement téléchargé.")
+            raise RuntimeError(f"Le modèle {model_name} n'a pas été correctement téléchargé.")
 
-        logging.info(f"✅ Modèle {model_name} téléchargé avec succès.")
+        logging.info(f"Modèle {model_name} téléchargé avec succès.")
 
     try:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         if model_name == "mask2former":
-            logging.info("🚀 Chargement de Mask2Former pré-entraîné...")
+            logging.info("Chargement de Mask2Former pré-entraîné...")
             model = Mask2FormerForUniversalSegmentation.from_pretrained(
                 "facebook/mask2former-swin-large-cityscapes-semantic"
             ).to(device)
         else:
-            logging.info("🚀 Chargement du modèle FPN...")
+            logging.info("Chargement du modèle FPN...")
             model = FPN_Segmenter(num_classes=8).to(device)
 
         # Charger les poids fine-tunés
         model.load_state_dict(torch.load(local_model_path, map_location=device))
 
         model.eval()
-        logging.info(f"✅ Modèle {model_name} chargé avec succès.")
+        logging.info(f"Modèle {model_name} chargé avec succès.")
         return model
 
     except Exception as e:
-        logging.error(f"❌ Erreur lors du chargement du modèle {model_name} : {e}")
+        logging.error(f"Erreur lors du chargement du modèle {model_name} : {e}")
         raise RuntimeError(f"Impossible de charger le modèle {model_name}")
