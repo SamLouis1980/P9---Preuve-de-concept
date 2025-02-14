@@ -20,7 +20,7 @@ logging.basicConfig(
     ]
 )
 
-logging.debug("🔍 Logging DEBUG activé dans FastAPI !")
+logging.debug("Logging DEBUG activé dans FastAPI !")
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
