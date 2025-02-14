@@ -37,9 +37,11 @@ def load_gcp_credentials():
                 raise RuntimeError("🚨 Clé GCP introuvable sur Colab ! Ajoutez `/content/gcp_key.json`.")
                 
         # Cas 1: Streamlit Secrets
-        if "GCP_CREDENTIALS" in st.secrets:
-            credentials_json = st.secrets["GCP_CREDENTIALS"]
-            logging.info("Clé GCP détectée dans Streamlit Secrets.")
+        if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
+            GCP_CREDENTIALS_PATH = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+            logging.info(f"Clé GCP détectée via la variable d'environnement : {GCP_CREDENTIALS_PATH}")
+        else:
+            raise RuntimeError("🚨 Clé GCP introuvable ! Assurez-vous d'avoir configuré GOOGLE_APPLICATION_CREDENTIALS.")
 
         # Cas 2: Variable d'environnement (Google Cloud Run)
         elif "GCP_CREDENTIALS" in os.environ:
