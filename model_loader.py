@@ -3,7 +3,6 @@ import os
 import logging
 import json
 from PIL import Image
-import streamlit as st
 import torch
 import torchvision
 from transformers import Mask2FormerForUniversalSegmentation
@@ -19,47 +18,37 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 GCP_CREDENTIALS_PATH = "/tmp/gcp_key.json"
 
 def load_gcp_credentials():
-    """Charge la clé GCP depuis Streamlit Secrets ou les variables d'environnement."""
+    """Charge la clé GCP depuis les variables d'environnement ou Streamlit Secrets."""
     try:
         credentials_json = None
 
-        # Cas 0: Exécution sur Colab (si la variable d'environnement GOOGLE_COLAB est présente)
-        if "COLAB_GPU" in os.environ:
-            logging.info("🔹 Exécution détectée sur Google Colab.")
-            
-            # Vérifier si la clé GCP est présente dans un fichier local
-            local_gcp_path = "/content/gcp_key.json"
-            if os.path.exists(local_gcp_path):
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = local_gcp_path
-                logging.info(f"Clé GCP chargée depuis {local_gcp_path}.")
-                return  # On s'arrête ici, pas besoin de chercher ailleurs.
-            else:
-                raise RuntimeError("🚨 Clé GCP introuvable sur Colab ! Ajoutez `/content/gcp_key.json`.")
-                
-        # Cas 1: Streamlit Secrets
+        # Cas 1: Variable d'environnement Google Cloud Run
         if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
-            GCP_CREDENTIALS_PATH = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-            logging.info(f"Clé GCP détectée via la variable d'environnement : {GCP_CREDENTIALS_PATH}")
-        else:
-            raise RuntimeError("🚨 Clé GCP introuvable ! Assurez-vous d'avoir configuré GOOGLE_APPLICATION_CREDENTIALS.")
+            logging.info(f"Clé GCP détectée via GOOGLE_APPLICATION_CREDENTIALS : {os.environ['GOOGLE_APPLICATION_CREDENTIALS']}")
+            return  # La clé est déjà définie
 
-        # Cas 2: Variable d'environnement (Google Cloud Run)
-        elif "GCP_CREDENTIALS" in os.environ:
+        # Cas 2: Clé GCP fournie via une variable d'environnement
+        if "GCP_CREDENTIALS" in os.environ:
             credentials_json = os.environ["GCP_CREDENTIALS"]
             logging.info("Clé GCP détectée dans les variables d'environnement.")
 
+        # Cas 3: Streamlit Secrets (exécution sur Streamlit Cloud)
+        elif "st" in globals() and "GCP_CREDENTIALS" in st.secrets:
+            credentials_json = st.secrets["GCP_CREDENTIALS"]
+            logging.info("Clé GCP détectée dans Streamlit Secrets.")
+
         if credentials_json:
             credentials_dict = json.loads(credentials_json) if isinstance(credentials_json, str) else credentials_json
-            
-            # Sauvegarder la clé dans un fichier temporaire
+
+            # Sauvegarde de la clé GCP dans un fichier temporaire
             with open(GCP_CREDENTIALS_PATH, "w") as f:
                 json.dump(credentials_dict, f)
 
-            # Définir la variable d’environnement
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GCP_CREDENTIALS_PATH
-            logging.info("Clé GCP correctement écrite dans /tmp/gcp_key.json")
+            logging.info("Clé GCP sauvegardée dans /tmp/gcp_key.json")
         else:
-            raise RuntimeError("Aucune clé GCP trouvée dans Streamlit Secrets ni les variables d'environnement.")
+            raise RuntimeError("Aucune clé GCP trouvée dans les variables d'environnement ni dans Streamlit Secrets.")
+
     except json.JSONDecodeError:
         logging.error("Erreur de décodage JSON dans GCP_CREDENTIALS.")
         raise RuntimeError("Erreur de décodage JSON dans les secrets GCP.")
@@ -82,7 +71,7 @@ MODEL_INPUT_SIZES = {
     "mask2former": (512, 512)
 }
 
-# 🎨 Palette de couleurs pour affichage (Cityscapes)
+# Palette de couleurs pour affichage (Cityscapes)
 GROUP_PALETTE = [
     (0, 0, 0), (128, 64, 128), (70, 70, 70), (153, 153, 153),
     (107, 142, 35), (70, 130, 180), (220, 20, 60), (0, 0, 142)
@@ -99,7 +88,7 @@ def list_images():
     try:
         logging.info("Connexion à Google Cloud Storage...")
         client = storage.Client()
-        bucket = client.get_bucket(BUCKET_NAME)
+        bucket = client.bucket(BUCKET_NAME)
         blobs = bucket.list_blobs(prefix="images/RGB/")
 
         image_files = [blob.name.split("/")[-1] for blob in blobs if blob.name.endswith(".png")]
@@ -133,7 +122,7 @@ def load_model(model_name="fpn"):
 
     # Vérifie si le modèle est local
     if not os.path.exists(local_model_path):
-        logging.info(f"Le modèle {model_name} n'est pas trouvé localement. Tentative de téléchargement...")
+        logging.info(f"Le modèle {model_name} n'est pas trouvé localement. Téléchargement...")
         download_file(BUCKET_NAME, model_path, local_model_path)
         
         if not os.path.exists(local_model_path):
@@ -145,7 +134,7 @@ def load_model(model_name="fpn"):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         if model_name == "mask2former":
-            logging.info("Chargement de Mask2Former avec les bons poids pré-entraînés...")
+            logging.info("Chargement de Mask2Former avec les poids pré-entraînés...")
             model = Mask2FormerForUniversalSegmentation.from_pretrained(
                 "facebook/mask2former-swin-large-cityscapes-semantic"
             ).to(device)
