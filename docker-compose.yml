@@ -3,12 +3,15 @@ version: "3.8"
 services:
   segmentation-service:
     container_name: segmentation-container
-    image: p8-segmentation-api
-    volumes:
-      - "./tmp:/tmp"
+    image: europe-west1-docker.pkg.dev/genial-venture-447118-b9/p8-repository/segmentation-api:latest
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - "./tmp:/tmp"
+      - "C:/Users/ayden/Documents/Projet 8/cle_gcp.json:/app/cle_gcp.json"
     ports:
       - "8080:8080"
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/cle_gcp.json
     restart: always
