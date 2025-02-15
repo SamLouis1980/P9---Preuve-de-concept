@@ -1,5 +1,7 @@
 [server]
+port = 8501
 headless = true
+enableCORS = false
 
 [python]
-version = "3.10"
+version = "3.11"
