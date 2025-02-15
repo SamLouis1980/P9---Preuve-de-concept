@@ -1,23 +1,28 @@
 import numpy as np
+import torch
 from PIL import Image
 
-def preprocess_image(image, input_size):
-    """Prépare une image pour le modèle.
+def preprocess_image(image: Image.Image, input_size: tuple):
+    """Prépare une image pour le modèle PyTorch.
 
     Args:
         image (PIL.Image): L'image à prétraiter.
         input_size (tuple): La taille d'entrée attendue par le modèle (largeur, hauteur).
 
     Returns:
-        tuple: Tableau numpy normalisé prêt pour le modèle, et taille originale de l'image.
+        tuple: Tenseur PyTorch normalisé prêt pour le modèle, et taille originale de l'image.
     """
     image = image.convert("RGB")  # S'assurer que l'image est en mode RGB
     original_size = image.size  # Sauvegarde de la taille originale
     image = image.resize(input_size, Image.BILINEAR)  # Redimensionnement
     image_array = np.array(image) / 255.0  # Normalisation entre 0 et 1
-    return np.expand_dims(image_array, axis=0), original_size
+    
+    # Convertir en tenseur PyTorch (format attendu : (batch, channels, height, width))
+    image_tensor = torch.tensor(image_array, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)  
+    return image_tensor, original_size
 
-def resize_and_colorize_mask(mask, original_size, palette):
+
+def resize_and_colorize_mask(mask: np.ndarray, original_size: tuple, palette: dict):
     """Redimensionne et colorise un masque prédictif.
 
     Args:
@@ -37,12 +42,13 @@ def resize_and_colorize_mask(mask, original_size, palette):
 
     return mask.convert("RGB")  # Convertir en RGB pour l'affichage
 
-def apply_cityscapes_palette(mask, palette):
+
+def apply_cityscapes_palette(mask: np.ndarray, palette: dict):
     """Applique une palette Cityscapes spécifique à un masque.
 
     Args:
         mask (numpy.ndarray): Masque en niveaux de gris (2D).
-        palette (list): Palette de couleurs Cityscapes (liste de tuples RGB).
+        palette (dict): Palette de couleurs Cityscapes (liste de tuples RGB).
 
     Returns:
         PIL.Image: Masque colorisé avec la palette.
