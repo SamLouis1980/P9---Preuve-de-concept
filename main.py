@@ -72,6 +72,7 @@ async def predict(file: UploadFile = File(...), model_name: str = Query("fpn", e
     input_size = MODEL_INPUT_SIZES[model_name]
     image_array, original_size = preprocess_image(image, input_size)
     logging.debug(f"Taille après prétraitement : {image_array.shape}")
+    print(f"Shape avant conversion : {image_array.shape}")  # Doit être (3, 512, 512)
 
     # Charger le modèle
     logging.info(f"Chargement du modèle {model_name}...")
@@ -83,7 +84,7 @@ async def predict(file: UploadFile = File(...), model_name: str = Query("fpn", e
     
     with torch.no_grad():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        inputs = torch.tensor(image_array).unsqueeze(0).to(device)  # Ajouter batch dimension
+        inputs = torch.tensor(image_array).to(device).unsqueeze(0)  # Assurer la bonne dimension batch
         outputs = model(inputs)
         mask = torch.argmax(outputs, dim=1).squeeze().cpu().numpy()
     
