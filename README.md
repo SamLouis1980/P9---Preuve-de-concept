@@ -26,8 +26,8 @@ Ce projet vise à démontrer ma capacité à effectuer une veille technologique,
 
 ## Structure du projet
 
-- notebook.ipynb                    # Comparaison des deux modèles (baseline vs ConVNext V2)
-- dashboard.py                      # Dashboard interactif déployable (Streamlit)
-- plan_previsionnel.pdf            # Plan de travail validé (1 page)
-- note_methodologique.pdf          # Note expliquant la démarche et les résultats (max 10 pages)
-- presentation.pptx                # Présentation pour la soutenance (30 slides max)
+- notebook.ipynb - Comparaison des deux modèles (baseline vs ConVNext V2)
+- dashboard.py - Dashboard interactif déployable (Streamlit)
+- plan_previsionnel.pdf - Plan de travail validé
+- note_methodologique.pdf - Note expliquant la démarche et les résultats
+- presentation.pptx - Présentation pour la soutenance
