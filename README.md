@@ -1,4 +1,4 @@
-# 🔬 Développement d’une preuve de concept – DataSpace
+#  Développement d’une preuve de concept – DataSpace
 
 ## Contexte
 
@@ -31,3 +31,5 @@ Ce projet vise à démontrer ma capacité à effectuer une veille technologique,
 - plan_previsionnel.pdf - Plan de travail validé
 - note_methodologique.pdf - Note expliquant la démarche et les résultats
 - presentation.pptx - Présentation pour la soutenance
+
+## Répertoire Associé : P9---Dashboard
