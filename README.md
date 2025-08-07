@@ -26,7 +26,7 @@ Ce projet vise à démontrer ma capacité à effectuer une veille technologique,
 
 ## Structure du projet
 
-- notebook.ipynb                    # Comparaison des deux modèles (baseline vs Mask2Former)
+- notebook.ipynb                    # Comparaison des deux modèles (baseline vs ConVNext V2)
 - dashboard.py                      # Dashboard interactif déployable (Streamlit)
 - plan_previsionnel.pdf            # Plan de travail validé (1 page)
 - note_methodologique.pdf          # Note expliquant la démarche et les résultats (max 10 pages)
